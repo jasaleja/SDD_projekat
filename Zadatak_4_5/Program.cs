@@ -18,7 +18,7 @@ namespace klasicna_raskrsnica
             Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
 
             // Postavljanje seed-a
-            //int defaultSeed = DateTime.Now.Millisecond;
+            int defaultSeed = DateTime.Now.Millisecond;
 
             // Postavljanje raspodela
 
@@ -27,32 +27,32 @@ namespace klasicna_raskrsnica
                 (
                     new TravelType[] { TravelType.Vehicle, TravelType.Pedestrian },
                     new double[] { 0.6, 0.4 },
-                    123
+                    defaultSeed
                 );
 
             // Vreme dolaska
-            UnifDist arrival = new UnifDist(6, 15, 234);
+            UnifDist arrival = new UnifDist(6, 15, defaultSeed);
 
             // U kom delu raskrsnice se pojavljuje
             DiscreteDistr<IntersectionPart> intersectionPart = new DiscreteDistr<IntersectionPart>
                 (
                     new IntersectionPart[] { IntersectionPart.North, IntersectionPart.South, IntersectionPart.East, IntersectionPart.West },
                     new double[] { 0.25, 0.25, 0.25, 0.25 },
-                    345
+                    defaultSeed / 2
                 );
 
             // Prosecno vreme prolaska kroz raskrsnicu za automobil
-            NormalDist vehicleService = new NormalDist(25, 4, 456);
+            NormalDist vehicleService = new NormalDist(6.94, 1, defaultSeed / 3);
 
             // Prosecna vreme prelaksa prelaza za pesaka
-            NormalDist pedestrianService = new NormalDist(7, 1, 567);
+            NormalDist pedestrianService = new NormalDist(7, 1, defaultSeed / 4);
 
             // U kom delu raskrsnice se pojavljuje novi ucesnik
             DiscreteDistr<VehicleDirection> vehicleDirection = new DiscreteDistr<VehicleDirection>
                 (
                     new VehicleDirection[] { VehicleDirection.Straight, VehicleDirection.Right, VehicleDirection.Left },
                     new double[] { 0.5, 0.3, 0.2 },
-                    678
+                    defaultSeed / 5
                 );
 
             FEL_template<Event> template = new FEL_template<Event>();
@@ -93,7 +93,7 @@ namespace klasicna_raskrsnica
             Console.WriteLine($"Najveci red cekanja na bilo kom pesackom prelazu je {sim.largestPedestrianQue} pesaka.");
             Console.WriteLine($"Prosecno vreme cekanja vozila na bilo kom ulazu u raskrsnicu je {sim.vehicleWait.Average():0.00} s.");
             Console.WriteLine($"Najveci red cekanja na bilo kom ulazu u raskrsnicu je {sim.largestVehicleQue} vozila.");
-
+            
             Console.ReadLine();
         }
     }
