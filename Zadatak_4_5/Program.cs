@@ -10,7 +10,6 @@ using System.Threading;
 
 namespace klasicna_raskrsnica
 {
-
     class Program
     {
         static void Main(string[] args)
@@ -19,7 +18,7 @@ namespace klasicna_raskrsnica
             Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
 
             // Postavljanje seed-a
-            int defaultSeed = DateTime.Now.Millisecond;
+            //int defaultSeed = DateTime.Now.Millisecond;
 
             // Postavljanje raspodela
 
@@ -27,33 +26,33 @@ namespace klasicna_raskrsnica
             DiscreteDistr<TravelType> travelers = new DiscreteDistr<TravelType>
                 (
                     new TravelType[] { TravelType.Vehicle, TravelType.Pedestrian },
-                    new double[] { 0.7, 0.3 },
-                    defaultSeed/2
+                    new double[] { 0.6, 0.4 },
+                    123
                 );
 
             // Vreme dolaska
-            UnifDist arrival = new UnifDist(6, 15, defaultSeed/3);
+            UnifDist arrival = new UnifDist(6, 15, 234);
 
             // U kom delu raskrsnice se pojavljuje
             DiscreteDistr<IntersectionPart> intersectionPart = new DiscreteDistr<IntersectionPart>
                 (
                     new IntersectionPart[] { IntersectionPart.North, IntersectionPart.South, IntersectionPart.East, IntersectionPart.West },
                     new double[] { 0.25, 0.25, 0.25, 0.25 },
-                    defaultSeed/4
+                    345
                 );
 
             // Prosecno vreme prolaska kroz raskrsnicu za automobil
-            NormalDist vehicleService = new NormalDist(25, 4, defaultSeed/5);
+            NormalDist vehicleService = new NormalDist(25, 4, 456);
 
             // Prosecna vreme prelaksa prelaza za pesaka
-            NormalDist pedestrianService = new NormalDist(7, 1, defaultSeed/6);
+            NormalDist pedestrianService = new NormalDist(7, 1, 567);
 
             // U kom delu raskrsnice se pojavljuje novi ucesnik
             DiscreteDistr<VehicleDirection> vehicleDirection = new DiscreteDistr<VehicleDirection>
                 (
                     new VehicleDirection[] { VehicleDirection.Straight, VehicleDirection.Right, VehicleDirection.Left },
                     new double[] { 0.5, 0.3, 0.2 },
-                    defaultSeed/7
+                    678
                 );
 
             FEL_template<Event> template = new FEL_template<Event>();
@@ -61,47 +60,39 @@ namespace klasicna_raskrsnica
             // Trajanje simulacije je 3600 sekundi
             template.Run(sim, 3600);
 
-            // Crtanje grafova za pesake na sva 4 prelaza
-            Plot pedestrianQueN = new Plot()
+            // Crtanje grafova za sve 4 strane
+            for (int i = 0; i < 4; i++)
             {
-                Title = "Red cekanja pesaka na severnom prelazu",
-                YLabel = "Velicina reda",
-                XLabel = "Vreme u sekundama"
-            };
+                // Pesaci
+                Plot pedestrianQue = new Plot()
+                {
+                    Title = $"Red cekanja pesaka na \"{(IntersectionPart)i}\" prelazu",
+                    YLabel = "Kolicina pesaka",
+                    XLabel = "Vreme u sekundama"
+                };
 
-            pedestrianQueN.AddStairPlot(sim.pedestrianQueLength[0].Select((t) => t.Item1).ToArray(), sim.pedestrianQueLength[0].Select((t) => t.Item2).ToArray(), "Sever");
-            pedestrianQueN.Draw();
+                pedestrianQue.AddStairPlot(sim.pedestrianQueLength[i].Select((t) => t.Item1).ToArray(), sim.pedestrianQueLength[i].Select((t) => t.Item2).ToArray(), $"{(IntersectionPart)i}");
+                pedestrianQue.Draw();
 
-            
-            Plot pedestrianQueS = new Plot()
-            {
-                Title = "Red cekanja pesaka na juznom prelazu",
-                YLabel = "Velicina reda",
-                XLabel = "Vreme u sekundama"
-            };
+                // Vozila
+                Plot vehicleQue = new Plot()
+                {
+                    Title = $"Red cekanja vozila na \"{(IntersectionPart)i}\" delu raskrsnice",
+                    YLabel = "Kolicina vozila",
+                    XLabel = "Vreme u sekundama"
+                };
 
-            pedestrianQueS.AddStairPlot(sim.pedestrianQueLength[1].Select((t) => t.Item1).ToArray(), sim.pedestrianQueLength[1].Select((t) => t.Item2).ToArray(), "Jug");
-            pedestrianQueS.Draw();
+                vehicleQue.AddStairPlot(sim.vehicleQueLength[i].Select((t) => t.Item1).ToArray(), sim.vehicleQueLength[i].Select((t) => t.Item2).ToArray(), $"{(IntersectionPart)i}");
+                vehicleQue.Draw();
 
-            Plot pedestrianQueE = new Plot()
-            {
-                Title = "Red cekanja pesaka na istocnom prelazu",
-                YLabel = "Velicina reda",
-                XLabel = "Vreme u sekundama"
-            };
+                //Console.ReadKey();
+            }
 
-            pedestrianQueE.AddStairPlot(sim.pedestrianQueLength[2].Select((t) => t.Item1).ToArray(), sim.pedestrianQueLength[2].Select((t) => t.Item2).ToArray(), "Istok");
-            pedestrianQueE.Draw();
-
-            Plot pedestrianQueW = new Plot()
-            {
-                Title = "Red cekanja pesaka na zapadnom prelazu",
-                YLabel = "Velicina reda",
-                XLabel = "Vreme u sekundama"
-            };
-
-            pedestrianQueW.AddStairPlot(sim.pedestrianQueLength[3].Select((t) => t.Item1).ToArray(), sim.pedestrianQueLength[3].Select((t) => t.Item2).ToArray(), "Zapad");
-            pedestrianQueW.Draw();
+            // Ostatak statistike pisan
+            Console.WriteLine($"Prosecno vreme cekanja pesaka na bilo kom pesackim prelazima je {sim.pedestrianWait.Average():0.00} s.");
+            Console.WriteLine($"Najveci red cekanja na bilo kom pesackom prelazu je {sim.largestPedestrianQue} pesaka.");
+            Console.WriteLine($"Prosecno vreme cekanja vozila na bilo kom ulazu u raskrsnicu je {sim.vehicleWait.Average():0.00} s.");
+            Console.WriteLine($"Najveci red cekanja na bilo kom ulazu u raskrsnicu je {sim.largestVehicleQue} vozila.");
 
             Console.ReadLine();
         }
